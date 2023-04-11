@@ -20,10 +20,10 @@ import torch.utils.data as data
 from loguru import logger
 from torch.optim.lr_scheduler import MultiStepLR
 
-import utils.config as config
+import utils.config as config #😉 Possible config information.
 # import wandb
-from utils.dataset import RefDataset, EndoVisDataset
-from engine.engine import train, validate
+from utils.dataset import RefDataset, EndoVisDataset #😉 endovis2017 pytorch dataset. I need to add Endovis2018 pytorch dataset.
+from engine.engine import train, validate #😉 train and validate functions.
 from model import build_segmenter
 from utils.misc import (init_random_seed, set_random_seed, setup_logger,
                         worker_init_fn)
@@ -42,7 +42,7 @@ def get_parser():
     parser.add_argument('--opts',
                         default=None,
                         nargs=argparse.REMAINDER,
-                        help='override some settings in the config.')
+                        help='override some settings in the config.') #😉 Config file is a yaml there is an opts to override some settings in the config. I need to make a new yaml file.
 
     args = parser.parse_args()
     assert args.config is not None
@@ -53,7 +53,7 @@ def get_parser():
 
 
 @logger.catch
-def main():
+def main(): #😉 main function. performs multi-gpu and multi-processing training.
     cfgs = get_parser()
     cfgs.manual_seed = init_random_seed(cfgs.manual_seed)
     set_random_seed(cfgs.manual_seed, deterministic=False)
@@ -101,7 +101,7 @@ def main_worker(gpu, cfgs):
     if cfgs.sync_bn:
         model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
     # freeze
-    for name in cfgs.freeze_modules:
+    for name in cfgs.freeze_modules: #😉 freeze_modules is a list of modules to freeze.
         for n, p in model.named_parameters():
             if n.startswith(name) or n.startswith('module.{}'.format(name)):
                 p.requires_grad = False

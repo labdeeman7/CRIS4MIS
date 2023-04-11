@@ -252,10 +252,10 @@ class EndoVisDataset(Dataset):
     """
     def __init__(self, cfg, mode):
         super(EndoVisDataset, self).__init__()
-        self.data_root = cfg.get('{}_data_root'.format(mode))
+        self.data_root = cfg.get('{}_data_root'.format(mode)) #😉 the mode file contains dicts that determine what mode we are currently training. modes can be mae, moe, etc.
         self.data_file = cfg.get('{}_data_file'.format(mode))
         self.data = json.load(
-            open(os.path.join(self.data_root, self.data_file)))
+            open(os.path.join(self.data_root, self.data_file))) #😉 the data file contains the data we are training on. it is a json file that contains a list of dicts. each dict contains the image path, mask path, number of sentences, and the sentences themselves.
         self.mode = mode
         input_size = cfg.input_size
         self.input_size = (cfg.input_size, cfg.input_size)
@@ -269,7 +269,7 @@ class EndoVisDataset(Dataset):
                                   0.40821073]).reshape(3, 1, 1)
         self.std = torch.tensor([0.26862954, 0.26130258,
                                  0.27577711]).reshape(3, 1, 1)
-        if self.use_vis_aug:
+        if self.use_vis_aug: #😉 Data augmentation code. 
             self.transform = A.Compose([
                 A.OneOf([
                     A.RandomSizedCrop(min_max_height=(int(
@@ -297,11 +297,11 @@ class EndoVisDataset(Dataset):
                 A.RandomGamma(p=0.8),
             ])
 
-    def __len__(self):
+    def __len__(self): 
         return len(self.data)
 
     def __getitem__(self, index):
-        ref = self.data[index]
+        ref = self.data[index] #😉 ref is a dict that contains the image path, mask path, number of sentences, and the sentences themselves for a single use case. There are images with tool segmentation masks and other instances of the same image with binary segmentation masks. 
         # img
         ori_img = cv2.imread(os.path.join(self.data_root, ref['img_path']))
         img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2RGB)
@@ -324,7 +324,7 @@ class EndoVisDataset(Dataset):
             mat,
             self.input_size,
             flags=cv2.INTER_CUBIC,
-            borderValue=[0.48145466 * 255, 0.4578275 * 255, 0.40821073 * 255])
+            borderValue=[0.48145466 * 255, 0.4578275 * 255, 0.40821073 * 255]) #😉 image scaling is done with affine transformations.
         if self.mode == 'train':
             # mask transform
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
@@ -332,7 +332,7 @@ class EndoVisDataset(Dataset):
                                   mat,
                                   self.input_size,
                                   flags=cv2.INTER_LINEAR,
-                                  borderValue=0.)
+                                  borderValue=0.) #😉 mask scaling is done with affine transformations. if we are training, we need to scale the mask as well.
             mask = mask / 255.
             # do transform
             if self.use_vis_aug:
@@ -340,7 +340,7 @@ class EndoVisDataset(Dataset):
                 img = transformed['image']
                 mask = transformed['mask']
             # sentence -> vector
-            if self.use_moe_select_best_sent:
+            if self.use_moe_select_best_sent: #😉 if we are using the moe model, we need to select the best sentence. I am currently not using this option.
                 word_vec_list = []
                 random_sents = np.random.choice(sents,
                                                 self.max_sent_num,
@@ -351,9 +351,9 @@ class EndoVisDataset(Dataset):
                     word_vec_list.append(word_vec)
                 word_vec = torch.stack(word_vec_list, dim=0)
             else:
-                sent = sents[idx]
-                word_vec = tokenize(sent, self.word_length, True).squeeze(0)
-            img, mask = self.convert(img, mask)
+                sent = sents[idx] #😉 if we are not using the moe model, we just select a sentence at random or the first sentence.
+                word_vec = tokenize(sent, self.word_length, True).squeeze(0) #😉 tokenize is a function that converts a sentence into a vector.
+            img, mask = self.convert(img, mask) #😉 convert is a function that converts the image and mask into tensors and normalizes.
             return img, word_vec, mask
         elif self.mode == 'val':
             # sentence -> vector
@@ -370,7 +370,7 @@ class EndoVisDataset(Dataset):
             img = self.convert(img)[0]
             params = {
                 'mask_path': mask_path,
-                'inverse': mat_inv,
+                'inverse': mat_inv, #😉 mat_inv is the inverse transformation matrix. it could be none or a matrix. if matrix, that means the pipeline scales down the image and mask. we need to scale the mask back up to the original size.
                 'ori_size': np.array(img_size)
             }
             return img, word_vec, params
@@ -387,11 +387,11 @@ class EndoVisDataset(Dataset):
             }
             return img, params
 
-    def getTransformMat(self, img_size, inverse=False):
-        ori_h, ori_w = img_size
+    def getTransformMat(self, img_size, inverse=False): #😉 This method is used to get the transformation matrix and inverse transformation matrix. Both methods essentially perform a scaling function using affine transformations. The scaling function is used to scale the image to the desired size. The inverse transformation matrix is used to scale the mask back to the original size.
+        ori_h, ori_w = img_size 
         inp_h, inp_w = self.input_size
-        scale = min(inp_h / ori_h, inp_w / ori_w)
-        new_h, new_w = ori_h * scale, ori_w * scale
+        scale = min(inp_h / ori_h, inp_w / ori_w) #😉 minimum between the desired height / original height and the desired width / original width.  
+        new_h, new_w = ori_h * scale, ori_w * scale #😉 new height and new width are the original height and width multiplied by the scale. if original height and original width are the same, then new height and new width are the same.
         bias_x, bias_y = (inp_w - new_w) / 2., (inp_h - new_h) / 2.
 
         src = np.array([[0, 0], [ori_w, 0], [0, ori_h]], np.float32)
