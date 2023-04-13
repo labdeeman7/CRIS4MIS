@@ -76,11 +76,11 @@ def process(root_dir, cris_data_file):
     cris_data_list = []
     if 'train' in root_dir:
         dataset_folder_array_num = [1,2,3,4,5,6,7,9,10,11,12,13,14,15,16] #😉 There is no seq_8 dataset for train
-    elif 'test' in root_dir:
+    elif 'val' in root_dir:
         dataset_folder_array_num = [1,2,3,4]
     for i in dataset_folder_array_num:
         image_dir = os.path.join(root_dir, 'seq_{}'.format(i),
-                                 'images')
+                                 'left_frames')
         print('process: {} ...'.format(image_dir))
         cris_masks_dir = os.path.join(root_dir,
                                       'seq_{}'.format(i),
@@ -92,15 +92,18 @@ def process(root_dir, cris_data_file):
         for image_file in image_files:
             print(image_file)
             image_path = os.path.join(image_dir, image_file)
-            mask_path = image_path.replace('images','labels')
+            mask_path = image_path.replace('left_frames','labels').replace('.png','_label_map.png')
+            
             mask = cv2.imread(mask_path)
             mask = (mask / factor).astype(np.uint8)
             #binary
-            for class_name in enumerate(binary_classification):
+            for class_name in binary_classification:
+                # print(class_name)
                 class_ids = class2sents[class_name]['classid']
                 target_mask = np.zeros_like(mask)
                 for class_id in class_ids:
-                    target_mask = np.logical_or(target_mask, (mask == class_id) * 255, target_mask)
+                    target_mask = np.logical_or(target_mask, (mask == class_id))
+                target_mask = target_mask.astype(np.uint8) * 255  
                 if target_mask.sum() != 0:  #😉 why is the mask only saved when there are examples? I guess for positive things only. 
                     cris_data_list.append(
                         get_one_sample(root_dir, image_file, image_path,
@@ -112,8 +115,12 @@ def process(root_dir, cris_data_file):
                     continue
                 class_ids = class2sents[class_name]['classid']
                 target_mask = np.zeros_like(mask)
+
                 for class_id in class_ids:
-                    target_mask = np.logical_or(target_mask, (mask == class_id) * 255, target_mask)
+                    target_mask = np.logical_or(target_mask, (mask == class_id))
+                target_mask = target_mask.astype(np.uint8) * 255  
+                
+                
                 if target_mask.sum() != 0:
                     cris_data_list.append(
                         get_one_sample(root_dir, image_file, image_path,
@@ -126,7 +133,9 @@ def process(root_dir, cris_data_file):
                 class_ids = class2sents[class_name]['classid']
                 target_mask = np.zeros_like(mask)
                 for class_id in class_ids:
-                    target_mask = np.logical_or(target_mask, (mask == class_id) * 255, target_mask)
+                    target_mask = np.logical_or(target_mask, (mask == class_id))
+                target_mask = target_mask.astype(np.uint8) * 255  
+                
                 if target_mask.sum() != 0:
                     cris_data_list.append(
                         get_one_sample(root_dir, image_file, image_path,
@@ -134,17 +143,19 @@ def process(root_dir, cris_data_file):
                                        class_name))
                     
             # anatomy   
-            for class_name in enumerate(anatomy_classification):
+            for class_name in anatomy_classification:
                 class_ids = class2sents[class_name]['classid']
                 target_mask = np.zeros_like(mask)
                 for class_id in class_ids:
-                    target_mask = np.logical_or(target_mask, (mask == class_id) * 255, target_mask)
+                    target_mask = np.logical_or(target_mask, (mask == class_id))
+                target_mask = target_mask.astype(np.uint8) * 255  
+                                  
                 if target_mask.sum() != 0:  #😉 why is the mask only saved when there are examples? I guess for positive things only. 
                     cris_data_list.append(
                         get_one_sample(root_dir, image_file, image_path,
                                         cris_masks_dir, target_mask,
                                         class_name))           
-
+    
     with open(os.path.join(root_dir, cris_data_file), 'w') as f:
         json.dump(cris_data_list, f)
 
