@@ -251,6 +251,7 @@ def inference(test_loader, model, cfgs):
                 # save results for vis
                 pred_name = 'pred-{}-{}-{}-iou={:.2f}-{}.jpg'.format(
                     image_split, image_id, seg_type, iou * 100, sent)
+<<<<<<< HEAD
                 if 'EndoVis2017' in cfgs.test_data_root:
                     if 'train' in cfgs.test_data_root:
                         suffix = 'jpg'
@@ -268,6 +269,17 @@ def inference(test_loader, model, cfgs):
                             cfgs.test_data_root,
                             'images/{}_{}.{}'.format(image_split, image_id,
                                                      suffix)))
+=======
+                if 'train' in cfgs.test_data_root:
+                    suffix = 'png'
+                elif 'val' in cfgs.test_data_root:
+                    suffix = 'png'
+                image = cv2.imread(
+                    os.path.join(
+                        cfgs.test_data_root,
+                        '{}/left_frames/{}.{}'.format(image_split, image_id,
+                                                 suffix)))
+>>>>>>> got it running from beginning to end
                 show = np.zeros(image.shape)
                 show[:, :, 0] = 255
                 pred = pred.astype(np.float64) * 0.5

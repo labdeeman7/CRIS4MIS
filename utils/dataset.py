@@ -416,3 +416,4 @@ class EndoVisDataset(Dataset):
             if not isinstance(mask, torch.FloatTensor):
                 mask = mask.float()
         return img, mask
+      
