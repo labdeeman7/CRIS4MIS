@@ -60,12 +60,12 @@ def get_one_sample(root_dir, image_file, image_path, save_dir, mask, class_name)
     mask_path = os.path.join(
         save_dir,
         image_file.replace(suffix, '') + '_{}.png'.format(class_name))
-    cv2.imwrite(mask_path, mask)
+    # cv2.imwrite(mask_path, mask)
     cris_data = {
         'img_path': image_path.replace(root_dir, ''),
         'mask_path': mask_path.replace(root_dir, ''),
         'num_sents': len(class2sents[class_name]),
-        'sents': class2sents[class_name],
+        'sents': class2sents[class_name]['sents'],
     }
     return cris_data
 

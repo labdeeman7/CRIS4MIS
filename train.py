@@ -21,7 +21,7 @@ from torch.optim.lr_scheduler import MultiStepLR
 
 import utils.config as config #😉 Possible config information.
 # import wandb
-from utils.dataset import RefDataset, EndoVisDataset #😉 endovis2017 pytorch dataset. I need to add Endovis2018 pytorch dataset.
+from utils.dataset import RefDataset, EndoVisDataset  
 from engine.engine import train, validate #😉 train and validate functions.
 from model import build_segmenter
 from utils.misc import (init_random_seed, set_random_seed, setup_logger,
@@ -54,6 +54,7 @@ def get_parser():
 @logger.catch
 def main(): #😉 main function. performs multi-gpu and multi-processing training.
     cfgs = get_parser()
+    
     cfgs.manual_seed = init_random_seed(cfgs.manual_seed)
     set_random_seed(cfgs.manual_seed, deterministic=False)
 
@@ -119,7 +120,7 @@ def main_worker(gpu, cfgs):
     scaler = amp.GradScaler()
 
     # build dataset
-    cfgs.batch_size = int(cfgs.batch_size / cfgs.ngpus_per_node)
+    cfgs.batch_size = int(cfgs.batch_size / cfgs.ngpus_per_node) #Not true the batch size is not 64 for all, but 8 if you using 8 gpus 
     cfgs.batch_size_val = int(cfgs.batch_size_val / cfgs.ngpus_per_node)
     cfgs.workers = int(
         (cfgs.workers + cfgs.ngpus_per_node - 1) / cfgs.ngpus_per_node)

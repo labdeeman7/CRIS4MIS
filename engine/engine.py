@@ -242,13 +242,13 @@ def inference(test_loader, model, cfgs):
                 pred_name = 'pred-{}-{}-{}-iou={:.2f}-{}.jpg'.format(
                     image_split, image_id, seg_type, iou * 100, sent)
                 if 'train' in cfgs.test_data_root:
-                    suffix = 'jpg'
-                elif 'test' in cfgs.test_data_root:
+                    suffix = 'png'
+                elif 'val' in cfgs.test_data_root:
                     suffix = 'png'
                 image = cv2.imread(
                     os.path.join(
                         cfgs.test_data_root,
-                        '{}/images/{}.{}'.format(image_split, image_id,
+                        '{}/left_frames/{}.{}'.format(image_split, image_id,
                                                  suffix)))
                 show = np.zeros(image.shape)
                 show[:, :, 0] = 255
