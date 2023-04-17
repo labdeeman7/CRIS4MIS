@@ -58,8 +58,14 @@ class CRIS(nn.Module):
         # MAE
         self.use_mae_gen_target_area = cfg.use_mae_gen_target_area
         self.mae_pretrain = cfg.mae_pretrain
+        self.mae_input_shape = cfg.mae_input_shape
+        self.mae_mask_ratio = cfg.mae_mask_ratio
         self.reconstruct_full_img = cfg.reconstruct_full_img
         self.mae_hard_example_mining_type = cfg.mae_hard_example_mining_type
+        self.mae_shared_encoder = cfg.mae_shared_encoder
+        if self.mae_shared_encoder:
+            assert "visual.proj" in clip_model.state_dict(
+            ), 'CLIP model must use vit based visual encoder.'
         if self.use_mae_gen_target_area:
             self.mae = MaskedAutoencoderViT(patch_size=16,
                                             embed_dim=768,
@@ -95,24 +101,38 @@ class CRIS(nn.Module):
         vis = self.backbone.encode_image(img)
 
         if self.use_moe_select_best_sent:
-            pred_all = img.new_zeros(
+            # (b, sent_num, words) -> (b*sent_num, words)
+            word = word.reshape((batch_size * self.max_sent_num, -1))
+            pad_mask = pad_mask.reshape((batch_size * self.max_sent_num, -1))
+            f_word, state = self.backbone.encode_text(word)
+            if self.neck_with_text_state:
+                fq_list = []
+                for i_sent in range(self.max_sent_num):
+                    this_fq = self.neck(
+                        vis,
+                        state[i_sent * batch_size:(i_sent + 1) * batch_size])
+                    fq_list.append(this_fq)
+                fq = torch.stack(fq_list, dim=0)
+            else:
+                fq = self.neck(vis)
+                fq = fq.repeat((self.max_sent_num, 1, 1, 1))
+                ori_shape = fq.shape
+                fq = fq.reshape((
+                    self.max_sent_num,
+                    batch_size,
+                ) + ori_shape[1:])
+            fq = fq.transpose(0, 1)
+            ori_shape = fq.shape
+            fq = fq.reshape((ori_shape[0] * ori_shape[1], ) + ori_shape[2:])
+            b, c, h, w = fq.size()
+            fq = self.decoder(fq, f_word, pad_mask)
+            fq = fq.reshape(b, c, h, w)
+            pred = self.proj(fq, state)
+            score = self.sent_selector(fq, state)
+            pred_all = pred.reshape(
                 (batch_size, self.max_sent_num, img_h // 4, img_w // 4))
-            score_all = img.new_zeros((batch_size, self.max_sent_num))
-            for i_sent in range(self.max_sent_num):
-                f_word, state = self.backbone.encode_text(word[:, i_sent, :])
-                # b, 512, 26, 26 (C4)
-                if self.neck_with_text_state:
-                    fq = self.neck(vis, state)
-                else:
-                    fq = self.neck(vis)
-                b, c, h, w = fq.size()
-                fq = self.decoder(fq, f_word, pad_mask[:, i_sent, :])
-                fq = fq.reshape(b, c, h, w)
-                # b, 1, 104, 104
-                pred = self.proj(fq, state)
-                score = self.sent_selector(fq, state)
-                pred_all[:, i_sent:i_sent + 1] = pred
-                score_all[:, i_sent] = score
+            score_all = score.reshape((batch_size, self.max_sent_num))
+
             best_idx = torch.argmax(score_all, dim=1)  # b, 7
             best_idx_oh = F.one_hot(best_idx, num_classes=self.max_sent_num)
             pred_mask = torch.ones(
@@ -176,11 +196,10 @@ class CRIS(nn.Module):
                 ) * self.moe_consistency_loss_weight
 
             if self.use_mae_gen_target_area:
-                # (224, 224) same as original MAE
-                mae_img = F.interpolate(img, (224, 224),
+                mae_img = F.interpolate(img, self.mae_input_shape,
                                         mode='bilinear').detach()
                 if not self.reconstruct_full_img:
-                    mae_mask = F.interpolate(mask, (224, 224),
+                    mae_mask = F.interpolate(mask, self.mae_input_shape,
                                              mode='nearest').detach()
                     mae_img = mae_img * mae_mask
                 if self.mae_hard_example_mining_type is not None:
@@ -194,14 +213,55 @@ class CRIS(nn.Module):
                         mae_hard_example = torch.logical_xor(pred_t, mask_t)
                     mae_hard_example = mae_hard_example.to(torch.float32)
                     mae_hard_example = F.interpolate(mae_hard_example,
-                                                     (224, 224),
+                                                     self.mae_input_shape,
                                                      mode='nearest').detach()
                 else:
                     mae_hard_example = None
+                mae_encoder = self.backbone.visual.transformer if self.mae_shared_encoder else None
                 mae_loss, mae_pred, mae_mask = self.mae(
-                    mae_img, hard_example=mae_hard_example)
+                    mae_img,
+                    hard_example=mae_hard_example,
+                    encoder=mae_encoder)
                 loss = loss + mae_loss
 
             results['loss'] = loss
+        else:
+            if self.use_mae_gen_target_area:
+                mae_img = F.interpolate(img, self.mae_input_shape,
+                                        mode='bilinear').detach()
+                # if not self.reconstruct_full_img:
+                #     pred_mask_t = (pred.detach().sigmoid() > 0.35).to(
+                #         torch.float32)
+                #     pred_mask_t = F.interpolate(pred_mask_t, self.mae_input_shape,
+                #                                 mode='nearest').detach()
+                #     mae_img = mae_img * pred_mask_t
+                mae_encoder = self.backbone.visual.transformer if self.mae_shared_encoder else None
+                mae_loss, mae_pred, mae_mask = self.mae(mae_img,
+                                                        mask_ratio=self.mae_mask_ratio,
+                                                        encoder=mae_encoder)
+
+                # visualize MAE
+                # 1. visualize the pred img
+                mae_pred = self.mae.unpatchify(mae_pred)
+                mae_pred = torch.einsum('nchw->nhwc', mae_pred).detach()
+                # 2. visualize the mask
+                mae_mask = mae_mask.detach()
+                mae_mask = mae_mask.unsqueeze(-1).repeat(
+                    1, 1, self.mae.patch_embed.patch_size[0]**2 *
+                    3)  # (N, H*W, p*p*3)
+                mae_mask = self.mae.unpatchify(
+                    mae_mask)  # 1 is removing, 0 is keeping
+                mae_mask = torch.einsum('nchw->nhwc', mae_mask).detach()
+                # 3. original img
+                mae_img = torch.einsum('nchw->nhwc', mae_img)
+                # 4. masked img
+                masked_mae_img = mae_img * (1 - mae_mask)
+                # mae reconstruction pasted with visible patches
+                mae_img_paste = mae_img * (1 - mae_mask) + mae_pred * mae_mask
+
+                results['mae_img'] = mae_img
+                results['mased_mae_img'] = masked_mae_img
+                results['mae_pred'] = mae_pred
+                results['mae_img_paste'] = mae_img_paste
 
         return results
