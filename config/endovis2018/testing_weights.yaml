@@ -5,7 +5,7 @@ DATA:
   val_data_file: cris_val_2018.json
   val_data_root: ../data/endovis_2018_all_seq_full_size/val
   sents_select_type: "random"
-  use_vis_aug: True
+  use_vis_aug: False
   use_vis_aug_non_rigid: False
 TRAIN:
   freeze_modules: []
@@ -41,7 +41,7 @@ TRAIN:
   # Training Setting
   workers: 8  # data loader workers
   workers_val: 4
-  epochs: 50
+  epochs: 1
   milestones: [35]
   start_epoch: 0
   batch_size: 64  # batch size for training
@@ -54,12 +54,14 @@ TRAIN:
   manual_seed: 0
   print_freq: 100
   # Resume & Save
-  exp_name: CRIS_R50_DATA_AUG
+  exp_name: CRIS_R50
   output_folder: exp/endovis2018
   save_freq: 1
   weight:  # path to initial weight (default: none)
   resume:  # path to latest checkpoint (default: none)
   evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+  # debug
+  testing_trainable_weights: True
 Distributed:
   dist_url: tcp://localhost:3681
   dist_backend: 'nccl'

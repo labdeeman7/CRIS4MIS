@@ -11,7 +11,7 @@ TRAIN:
   freeze_modules: []
   # Base Arch
   clip_pretrain: pretrain/RN50.pt
-  input_size: 416
+  input_size: 960
   word_len: 17
   word_dim: 1024
   vis_dim: 512
@@ -44,8 +44,8 @@ TRAIN:
   epochs: 50
   milestones: [35]
   start_epoch: 0
-  batch_size: 64  # batch size for training
-  batch_size_val: 64  # batch size for validation during training, memory and speed tradeoff
+  batch_size: 32  # batch size for training
+  batch_size_val: 32  # batch size for validation during training, memory and speed tradeoff
   base_lr: 0.0001
   lr_decay: 0.1
   lr_multi: 0.1
@@ -54,7 +54,7 @@ TRAIN:
   manual_seed: 0
   print_freq: 100
   # Resume & Save
-  exp_name: CRIS_R50_DATA_AUG
+  exp_name: CRIS_R50_BIGGER_SIZE_DATA_AUG
   output_folder: exp/endovis2018
   save_freq: 1
   weight:  # path to initial weight (default: none)
