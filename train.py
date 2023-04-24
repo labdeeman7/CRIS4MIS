@@ -19,10 +19,10 @@ import torch.utils.data as data
 from loguru import logger
 from torch.optim.lr_scheduler import MultiStepLR
 
-import utils.config as config #😉 Possible config information.
+import utils.config as config  # 😉 Possible config information.
 # import wandb
-from utils.dataset import RefDataset, EndoVisDataset  
-from engine.engine import train, validate #😉 train and validate functions.
+from utils.dataset import RefDataset, EndoVisDataset
+from engine.engine import train, validate  # 😉 train and validate functions.
 from model import build_segmenter
 from utils.misc import (init_random_seed, set_random_seed, setup_logger,
                         worker_init_fn)
@@ -41,7 +41,7 @@ def get_parser():
     parser.add_argument('--opts',
                         default=None,
                         nargs=argparse.REMAINDER,
-                        help='override some settings in the config.') #😉 Config file is a yaml there is an opts to override some settings in the config. I need to make a new yaml file.
+                        help='override some settings in the config.')  # 😉 Config file is a yaml there is an opts to override some settings in the config. I need to make a new yaml file.
 
     args = parser.parse_args()
     assert args.config is not None
@@ -52,9 +52,10 @@ def get_parser():
 
 
 @logger.catch
-def main(): #😉 main function. performs multi-gpu and multi-processing training.
+# 😉 main function. performs multi-gpu and multi-processing training.
+def main():
     cfgs = get_parser()
-    
+
     cfgs.manual_seed = init_random_seed(cfgs.manual_seed)
     set_random_seed(cfgs.manual_seed, deterministic=False)
 
@@ -101,7 +102,8 @@ def main_worker(gpu, cfgs):
     if cfgs.sync_bn:
         model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
     # freeze
-    for name in cfgs.freeze_modules: #😉 freeze_modules is a list of modules to freeze.
+    # 😉 freeze_modules is a list of modules to freeze.
+    for name in cfgs.freeze_modules:
         for n, p in model.named_parameters():
             if n.startswith(name) or n.startswith('module.{}'.format(name)):
                 p.requires_grad = False
@@ -120,7 +122,8 @@ def main_worker(gpu, cfgs):
     scaler = amp.GradScaler()
 
     # build dataset
-    cfgs.batch_size = int(cfgs.batch_size / cfgs.ngpus_per_node) #Not true the batch size is not 64 for all, but 8 if you using 8 gpus 
+    # Not true the batch size is not 64 for all, but 8 if you using 8 gpus
+    cfgs.batch_size = int(cfgs.batch_size / cfgs.ngpus_per_node)
     cfgs.batch_size_val = int(cfgs.batch_size_val / cfgs.ngpus_per_node)
     cfgs.workers = int(
         (cfgs.workers + cfgs.ngpus_per_node - 1) / cfgs.ngpus_per_node)
@@ -169,7 +172,14 @@ def main_worker(gpu, cfgs):
             raise ValueError(
                 "=> resume failed! no checkpoint found at '{}'. Please check cfgs.resume again!"
                 .format(cfgs.resume))
-
+    #debug training
+    # if cfgs.testing_trainable_weights: 
+    #     logger.info("=> testing trainable weights")
+    #     for name, param in model.named_parameters():
+    #         if param.requires_grad:
+    #             logger.info(name)
+    #     return
+    
     # start training
     start_time = time.time()
     for epoch in range(cfgs.start_epoch, cfgs.epochs):

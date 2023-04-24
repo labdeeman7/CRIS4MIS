@@ -8,10 +8,13 @@
 
 test_dataset='val'
 # Create
-test_path=../data/endovis_2018_all_seq_full_size/val
-pred_path=exp/endovis2018/CRIS_R50/score
+echo "first argument should be the exp_name ${1}"
 
-echo "model exp tag: ${exp_tag}"
+exp_name=$1
+
+test_path=../data/endovis_2018_all_seq_full_size/val
+pred_path=exp/endovis2018/${exp_name}/score
+
 echo "test path: ${test_path}"
 
 
@@ -39,3 +42,10 @@ python evaluate_tosin.py \
   --test_path ${test_path} \
   --pred_path ${pred_path} \
   --problem_type anatomy
+
+
+echo "eval endovis_2018_style ..."
+python evaluate_tosin.py \
+  --test_path ${test_path} \
+  --pred_path ${pred_path} \
+  --problem_type endovis_2018_style 

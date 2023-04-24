@@ -75,7 +75,7 @@ if __name__ == '__main__':
     arg('--problem_type',
         type=str,
         default='parts',
-        choices=['binary', 'parts', 'instruments', 'anatomy'])
+        choices=['binary', 'parts', 'instruments', 'anatomy', 'endovis_2018_style'])
     arg('--vis', action='store_true')
     args = parser.parse_args()
 
@@ -95,6 +95,10 @@ if __name__ == '__main__':
 
     elif args.problem_type == 'anatomy':
         class_name_list = ['background_tissue', 'kidney_parenchyma', 'covered_kidney', 'small_intestine']
+
+    elif args.problem_type == 'endovis_2018_style':
+        class_name_list =  ["background_tissue", "instrument_shaft", "instrument_clasper", "instrument_wrist", "kidney_parenchyma", "covered_kidney", 
+                                        "thread", "clamps","suturing_needle", "suction_instrument", "small_intestine", "ultrasound_probe" ]    
 
     # palette
     if args.vis:
@@ -165,11 +169,15 @@ if __name__ == '__main__':
                     pred_image = np.zeros_like(image_reference)
                     gt_image = np.zeros_like(image_reference)
 
+  
+
                 pred_image_list.append(pred_image)
                 gt_image_list.append(gt_image)
 
             pred_image = np.array(pred_image_list)
             gt_image = np.array(gt_image_list)
+
+
 
             y_pred = np.argmax(pred_image, axis=0)
             y_true = np.argmax(gt_image, axis=0)
@@ -208,3 +216,6 @@ if __name__ == '__main__':
         np.mean(result_jaccard) * 100, np.std(result_jaccard)))
     print('Dice: mean={:.2f}, std={:.4f}'.format(
         np.mean(result_dice) * 100, np.std(result_dice)))
+    
+    # print(f'iou is {result_jaccard}' )
+    # print(f'result_dice is {result_dice}' )

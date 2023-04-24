@@ -9,17 +9,23 @@
 source /users/${USER}/.bashrc
 source activate MTPSL
 
+echo "exp_name is ${1}"
+echo "exp_yaml_name is ${2}"
+
+exp_name=$1
+exp_yaml_name=$2
 
 test_dataset='val'
-exp_tag=cris_r50
+# exp_tag=cris_r50_data_aug
 # Create
 test_path=../data/endovis_2018_all_seq_full_size/val
-pred_path=exp/endovis2018/${exp_tag}/score
+pred_path=exp/endovis2018/${exp_name}/score
 
-echo "model exp tag: ${exp_tag}"
+echo "model exp tag: ${exp_name}"
 echo "test path: ${test_path}"
+
 python test.py \
-  --config config/endovis2018/${exp_tag}.yaml \
+  --config config/endovis2018/${exp_yaml_name}.yaml \
   --only_pred_first_sent \
   --opts TEST.visualize True \
          TEST.test_data_file cris_${test_dataset}_2018.json \
