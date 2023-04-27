@@ -70,9 +70,11 @@ class CRIS(nn.Module):
         if self.use_mae_gen_target_area:
             assert self.mae_pretrain is not None
             assert self.mae_pretrain != ''
-            self.mae = mae_vit_base_patch16()
+            self.mae = mae_vit_base_patch16(img_size=self.mae_input_shape[0])
             mae_state_dict = self.mae.state_dict()
             pre_state_dict = torch.load(self.mae_pretrain, map_location="cpu")
+            # pos_embed is fixed sin-cos embedding and does not need to be loaded from the pre-trained model.
+            pre_state_dict['model'].pop('pos_embed')
             mae_state_dict.update(pre_state_dict['model'])
             self.mae.load_state_dict(mae_state_dict)
             print('load MAE pretrain model from {} successfully.'.format(
