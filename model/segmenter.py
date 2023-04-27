@@ -12,10 +12,12 @@ class CRIS(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         # Vision & Text Encoder
-        clip_model = torch.jit.load(cfg.clip_pretrain,
-                                    map_location="cpu").eval()
-        self.backbone = build_model(clip_model.state_dict(),
-                                    cfg.word_len).float()
+        try:
+            clip_state_dict = torch.jit.load(
+                cfg.clip_pretrain, map_location="cpu").eval().state_dict()
+        except:
+            clip_state_dict = torch.load(cfg.clip_pretrain, map_location="cpu")
+        self.backbone = build_model(clip_state_dict, cfg.word_len).float()
         # Multi-Modal FPN
         self.neck_with_text_state = cfg.neck_with_text_state
         self.neck = FPN(in_channels=cfg.fpn_in, out_channels=cfg.fpn_out)
@@ -64,8 +66,7 @@ class CRIS(nn.Module):
         self.mae_hard_example_mining_type = cfg.mae_hard_example_mining_type
         self.mae_shared_encoder = cfg.mae_shared_encoder
         if self.mae_shared_encoder:
-            assert "visual.proj" in clip_model.state_dict(
-            ), 'CLIP model must use vit based visual encoder.'
+            assert "visual.proj" in clip_state_dict, 'CLIP model must use vit based visual encoder.'
         if self.use_mae_gen_target_area:
             self.mae = MaskedAutoencoderViT(patch_size=16,
                                             embed_dim=768,
@@ -196,10 +197,12 @@ class CRIS(nn.Module):
                 ) * self.moe_consistency_loss_weight
 
             if self.use_mae_gen_target_area:
-                mae_img = F.interpolate(img, self.mae_input_shape,
+                mae_img = F.interpolate(img,
+                                        self.mae_input_shape,
                                         mode='bilinear').detach()
                 if not self.reconstruct_full_img:
-                    mae_mask = F.interpolate(mask, self.mae_input_shape,
+                    mae_mask = F.interpolate(mask,
+                                             self.mae_input_shape,
                                              mode='nearest').detach()
                     mae_img = mae_img * mae_mask
                 if self.mae_hard_example_mining_type is not None:
@@ -227,7 +230,8 @@ class CRIS(nn.Module):
             results['loss'] = loss
         else:
             if self.use_mae_gen_target_area:
-                mae_img = F.interpolate(img, self.mae_input_shape,
+                mae_img = F.interpolate(img,
+                                        self.mae_input_shape,
                                         mode='bilinear').detach()
                 # if not self.reconstruct_full_img:
                 #     pred_mask_t = (pred.detach().sigmoid() > 0.35).to(
@@ -236,9 +240,10 @@ class CRIS(nn.Module):
                 #                                 mode='nearest').detach()
                 #     mae_img = mae_img * pred_mask_t
                 mae_encoder = self.backbone.visual.transformer if self.mae_shared_encoder else None
-                mae_loss, mae_pred, mae_mask = self.mae(mae_img,
-                                                        mask_ratio=self.mae_mask_ratio,
-                                                        encoder=mae_encoder)
+                mae_loss, mae_pred, mae_mask = self.mae(
+                    mae_img,
+                    mask_ratio=self.mae_mask_ratio,
+                    encoder=mae_encoder)
 
                 # visualize MAE
                 # 1. visualize the pred img
