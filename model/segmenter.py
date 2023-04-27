@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from model.clip import build_model
-from model.mae import MaskedAutoencoderViT
+from model.mae import mae_vit_base_patch16
 
 from .layers import FPN, Projector, TransformerDecoder, MaskIoUProjector
 
@@ -68,22 +68,15 @@ class CRIS(nn.Module):
         if self.mae_shared_encoder:
             assert "visual.proj" in clip_state_dict, 'CLIP model must use vit based visual encoder.'
         if self.use_mae_gen_target_area:
-            self.mae = MaskedAutoencoderViT(patch_size=16,
-                                            embed_dim=768,
-                                            depth=12,
-                                            num_heads=12,
-                                            decoder_embed_dim=512,
-                                            decoder_depth=8,
-                                            decoder_num_heads=16,
-                                            mlp_ratio=4)
-            if self.mae_pretrain is not None and self.mae_pretrain != '':
-                mae_state_dict = self.mae.state_dict()
-                pre_state_dict = torch.load(self.mae_pretrain,
-                                            map_location="cpu")
-                mae_state_dict.update(pre_state_dict['model'])
-                self.mae.load_state_dict(mae_state_dict)
-                print('load MAE pretrain model from {} successfully.'.format(
-                    self.mae_pretrain))
+            assert self.mae_pretrain is not None
+            assert self.mae_pretrain != ''
+            self.mae = mae_vit_base_patch16()
+            mae_state_dict = self.mae.state_dict()
+            pre_state_dict = torch.load(self.mae_pretrain, map_location="cpu")
+            mae_state_dict.update(pre_state_dict['model'])
+            self.mae.load_state_dict(mae_state_dict)
+            print('load MAE pretrain model from {} successfully.'.format(
+                self.mae_pretrain))
 
     def forward(self, img, word, mask=None):
         '''
