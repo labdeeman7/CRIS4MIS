@@ -1,3 +1,4 @@
+echo "Eval on EndoVis2017"
 test_dataset="test"
 exp_tag=$1
 # Create
@@ -17,19 +18,19 @@ python test.py \
          TEST.test_data_root ./EndoVis2017/cropped_${test_dataset}/
 
 echo "eval binary ..."
-python evaluate.py \
+python evaluate_2017.py \
   --test_path ${test_path} \
   --pred_path ${pred_path} \
   --problem_type binary
 
 echo "eval parts ..."
-python evaluate.py \
+python evaluate_2017.py \
   --test_path ${test_path} \
   --pred_path ${pred_path} \
   --problem_type parts
 
 echo "eval instruments ..."
-python evaluate.py \
+python evaluate_2017.py \
   --test_path ${test_path} \
   --pred_path ${pred_path} \
   --problem_type instruments
