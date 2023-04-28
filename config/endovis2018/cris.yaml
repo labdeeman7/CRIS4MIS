@@ -1,9 +1,9 @@
 DATA:
-  dataset: endovis2017
+  dataset: endovis2018
   train_data_file: cris_train.json
-  train_data_root: ./EndoVis2017/cropped_train/
-  val_data_file: cris_test.json
-  val_data_root: ./EndoVis2017/cropped_test/
+  train_data_root: ./EndoVis2018/train/
+  val_data_file: cris_val.json
+  val_data_root: ./EndoVis2018/val/
   sents_select_type: "random"
   use_vis_aug: False
   use_vis_aug_non_rigid: False
@@ -57,8 +57,8 @@ TRAIN:
   manual_seed: 0
   print_freq: 100
   # Resume & Save
-  exp_name: CRIS_R50
-  output_folder: exp/endovis2017
+  exp_name: CRIS
+  output_folder: exp/endovis2018
   save_freq: 1
   weight:  # path to initial weight (default: none)
   resume:  # path to latest checkpoint (default: none)
@@ -70,6 +70,6 @@ Distributed:
   world_size: 1
   rank: 0
 TEST:
-  test_data_file: cris_test.json
-  test_data_root: ./EndoVis2017/cropped_test/
+  test_data_file: cris_val.json
+  test_data_root: ./EndoVis2018/val/
   visualize: False

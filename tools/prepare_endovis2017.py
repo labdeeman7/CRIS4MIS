@@ -4,35 +4,35 @@ import cv2
 import json
 import numpy as np
 
-# class2sents = {
-#     'background': ['background', 'body tissues', 'organs'],
-#     'instrument': ['instrument', 'medical instrument', 'tool', 'medical tool'],
-#     'shaft': [
-#         'shaft', 'instrument shaft', 'tool shaft', 'instrument body',
-#         'tool body', 'instrument handle', 'tool handle'
-#     ],
-#     'wrist': [
-#         'wrist', 'instrument wrist', 'tool wrist', 'instrument neck',
-#         'tool neck', 'instrument hinge', 'tool hinge'
-#     ],
-#     'claspers': [
-#         'claspers', 'instrument claspers', 'tool claspers', 'instrument head',
-#         'tool head'
-#     ],
-#     'bipolar_forceps': ['bipolar forceps'],
-#     'prograsp_forceps': ['prograsp forceps'],
-#     'large_needle_driver': ['large needle driver', 'needle driver'],
-#     'vessel_sealer': ['vessel sealer'],
-#     'grasping_retractor': ['grasping retractor'],
-#     'monopolar_curved_scissors': ['monopolar curved scissors'],
-#     'other_medical_instruments': [
-#         'other instruments', 'other tools', 'other medical instruments',
-#         'other medical tools'
-#     ],
-# }
+class2sents = {
+    'background': ['background', 'body tissues', 'organs'],
+    'instrument': ['instrument', 'medical instrument', 'tool', 'medical tool'],
+    'shaft': [
+        'shaft', 'instrument shaft', 'tool shaft', 'instrument body',
+        'tool body', 'instrument handle', 'tool handle'
+    ],
+    'wrist': [
+        'wrist', 'instrument wrist', 'tool wrist', 'instrument neck',
+        'tool neck', 'instrument hinge', 'tool hinge'
+    ],
+    'claspers': [
+        'claspers', 'instrument claspers', 'tool claspers', 'instrument head',
+        'tool head'
+    ],
+    'bipolar_forceps': ['bipolar forceps'],
+    'prograsp_forceps': ['prograsp forceps'],
+    'large_needle_driver': ['large needle driver', 'needle driver'],
+    'vessel_sealer': ['vessel sealer'],
+    'grasping_retractor': ['grasping retractor'],
+    'monopolar_curved_scissors': ['monopolar curved scissors'],
+    'other_medical_instruments': [
+        'other instruments', 'other tools', 'other medical instruments',
+        'other medical tools'
+    ],
+}
 
 # gpt-4 v0
-class2sents = {
+'''class2sents = {
     'background': [
         'background tissue',
         'Background tissue in endoscopic surgery refers to the various normal bodily tissues that surround the surgical site. These tissues often include muscle, fat, connective tissue, blood vessels, and nerves. Colors may vary from pale pink to deep red, depending on the tissue type and blood supply. The shapes are usually irregular and closely packed, with fibrous or soft textures depending on the specific tissue. The function of background tissue is to provide structural support, protect vital organs, and facilitate bodily functions. Characteristics of these tissues include elasticity, varying levels of vascularity, and diverse cellular composition.',
@@ -93,7 +93,7 @@ class2sents = {
         'Endoscopic surgery also utilizes instruments like trocars, cannulas, and endoscopes. Trocars, usually silver in color and made from durable materials like stainless steel, have a sharp pyramidal or conical tip used to puncture the body cavity. Cannulas are hollow tubes inserted through trocars to maintain the access port. Endoscopes, comprising a long, flexible tube with a camera and light source, enable visualization of the surgical site. These instruments are essential for maintaining access, insufflating the cavity, and providing high-quality visualization during endoscopic surgery.',
         'In endoscopic surgery, additional instruments include silver-colored trocars made from durable materials, featuring a sharp tip for puncturing the body cavity. Cannulas, hollow tubes, maintain the access port, while endoscopes, consisting of a long, flexible tube with a camera and light source, enable visualization of the surgical site. These instruments are vital for maintaining access, insufflating the cavity, and providing high-quality visualization during endoscopic procedures.'
     ],
-}
+}'''
 
 binary_factor = 255
 parts_factor = 85
@@ -196,8 +196,8 @@ def process(root_dir, cris_data_file):
 
 if __name__ == '__main__':
     # must add last "/"
-    # /jmain02/home/J2AD019/exk01/zxz35-exk01/data/cambridge-1/EndoVis2017/cropped_test/
+    # /jmain02/home/J2AD019/exk01/zxz35-exk01/data/cambridge-1/EndoVis2017/cropped_train/
     root_dir = sys.argv[1]
-    # cris_test.json
+    # cris_train.json
     cris_data_file = sys.argv[2]
     process(root_dir, cris_data_file)
