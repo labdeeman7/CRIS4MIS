@@ -223,8 +223,18 @@ def inference(test_loader, model, cfgs):
             iou_list.append(iou)
             # dump prediction
             if cfgs.visualize:
-                image_split = param['mask_path'][0].split('/')[-3]
-                image_id = param['mask_path'][0].split('/')[-1].split('_')[0]
+                if 'EndoVis2017' in param['mask_path'][0]:
+                    image_split = param['mask_path'][0].split('/')[-3]
+                    image_id = param['mask_path'][0].split('/')[-1].split(
+                        '_')[0]
+                elif 'EndoVis2018' in param['mask_path'][0]:
+                    image_split = '_'.join(
+                        param['mask_path'][0].split('/')[-1].split('_')[:2])
+                    image_id = param['mask_path'][0].split('/')[-1].split(
+                        '_')[2]
+                else:
+                    assert False, 'not support dataset: {}'.format(
+                        param['mask_path'][0])
                 seg_type = '_'.join(param['sents'][0][0].split(' ')[:5])
                 sent = "_".join(sent[0].split(" ")[:5])
 
@@ -235,7 +245,7 @@ def inference(test_loader, model, cfgs):
                     results_for_eval['iou_list'].append(
                         results['mask_iou_pred'].item())
                 score_name = 'score-{}-{}-{}.npz'.format(
-                    image_split, image_id, seg_type, sent)
+                    image_split, image_id, seg_type)
                 results_for_eval['score_name_list'].append(score_name)
 
                 # save results for vis
