@@ -5,14 +5,14 @@ DATA:
   val_data_file: cris_test.json
   val_data_root: ./EndoVis2017/cropped_test/
   sents_select_type: "random"
-  use_vis_aug: False
+  use_vis_aug: True
   use_vis_aug_non_rigid: False
 TRAIN:
-  freeze_modules: []
+  freeze_modules: ['backbone.token_embedding', 'backbone.transformer']
   # Base Arch
-  clip_pretrain: pretrain/RN50.pt
-  input_size: 416
-  word_len: 17
+  clip_pretrain: pretrain/CLIP-ViT-B-16-laion2B-s34B-b88K/open_clip_pytorch_model.bin
+  input_size: 448
+  word_len: 77
   word_dim: 1024
   vis_dim: 512
   fpn_in: [512, 1024, 1024]
@@ -30,25 +30,25 @@ TRAIN:
   mask_iou_loss_weight: 1.0
   # MoE
   use_moe_select_best_sent: False
-  max_sent_num: 7
-  use_moe_consistency_loss: False
+  max_sent_num: 3
+  use_moe_consistency_loss: True
   moe_consistency_loss_weight: 1.0
   # MAE
   use_mae_gen_target_area: False
   mae_pretrain: 'pretrain/mae_pretrain_vit_base.pth'
   mae_input_shape: [224, 224]
-  mae_mask_ratio: 0.75
-  reconstruct_full_img: False
-  mae_hard_example_mining_type: null
-  mae_shared_encoder: False
+  mae_mask_ratio: 0.25
+  reconstruct_full_img: True
+  mae_hard_example_mining_type: 'v1'
+  mae_shared_encoder: True
   # Training Setting
   workers: 8  # data loader workers
   workers_val: 4
   epochs: 50
   milestones: [35]
   start_epoch: 0
-  batch_size: 64  # batch size for training
-  batch_size_val: 64  # batch size for validation during training, memory and speed tradeoff
+  batch_size: 16  # batch size for training
+  batch_size_val: 16  # batch size for validation during training, memory and speed tradeoff
   base_lr: 0.0001
   lr_decay: 0.1
   lr_multi: 0.1
