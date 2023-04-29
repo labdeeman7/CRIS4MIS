@@ -251,15 +251,23 @@ def inference(test_loader, model, cfgs):
                 # save results for vis
                 pred_name = 'pred-{}-{}-{}-iou={:.2f}-{}.jpg'.format(
                     image_split, image_id, seg_type, iou * 100, sent)
-                if 'train' in cfgs.test_data_root:
-                    suffix = 'jpg'
-                elif 'test' in cfgs.test_data_root:
+                if 'EndoVis2017' in cfgs.test_data_root:
+                    if 'train' in cfgs.test_data_root:
+                        suffix = 'jpg'
+                    elif 'test' in cfgs.test_data_root:
+                        suffix = 'png'
+                    image = cv2.imread(
+                        os.path.join(
+                            cfgs.test_data_root,
+                            '{}/images/{}.{}'.format(image_split, image_id,
+                                                     suffix)))
+                elif 'EndoVis2018' in cfgs.test_data_root:
                     suffix = 'png'
-                image = cv2.imread(
-                    os.path.join(
-                        cfgs.test_data_root,
-                        '{}/images/{}.{}'.format(image_split, image_id,
-                                                 suffix)))
+                    image = cv2.imread(
+                        os.path.join(
+                            cfgs.test_data_root,
+                            'images/{}_{}.{}'.format(image_split, image_id,
+                                                     suffix)))
                 show = np.zeros(image.shape)
                 show[:, :, 0] = 255
                 pred = pred.astype(np.float64) * 0.5

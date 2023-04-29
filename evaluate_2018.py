@@ -140,7 +140,7 @@ if __name__ == '__main__':
         image_id = image_file.split('.')[0]
         image_path = os.path.join(image_dir, image_file)
         anno_path = image_path.replace('images', 'annotations')
-        mask = cv2.imread(anno_path)
+        mask = cv2.imread(anno_path, 0).astype(np.uint8)
 
         # generate mask label
         if args.problem_type == 'binary':
@@ -165,6 +165,7 @@ if __name__ == '__main__':
                                == (0 + 255 * 256 + 255 * 256 * 256)) * 3
         elif args.problem_type == 'instruments':
             y_true = mask
+        y_true = y_true.astype(np.uint8)
 
         # vis
         if args.vis:
@@ -177,7 +178,7 @@ if __name__ == '__main__':
             gt_vis_image = image * 0.5 + show * 0.5
 
         image_split = '_'.join(image_file.split('_')[:2])
-        file_id = image_file.split('_')[2]
+        file_id = image_file.split('_')[2].split('.')[0]
         pred_image_list = []
         for class_name in class_name_list:
             pred_file_name = os.path.join(
@@ -208,8 +209,8 @@ if __name__ == '__main__':
                 '{}/{}_{}_{}.jpg'.format(eval_dir, args.problem_type,
                                          image_split, file_id), vis_image)
 
-            result_jaccard += [general_jaccard(y_true, y_pred)]
-            result_dice += [general_dice(y_true, y_pred)]
+        result_jaccard += [general_jaccard(y_true, y_pred)]
+        result_dice += [general_dice(y_true, y_pred)]
 
     print('Jaccard (IoU): mean={:.2f}, std={:.4f}'.format(
         np.mean(result_jaccard) * 100, np.std(result_jaccard)))
