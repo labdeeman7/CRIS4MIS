@@ -156,10 +156,10 @@ if __name__ == '__main__':
             for class_name in ['shaft', 'wrist', 'claspers']:
                 if class_name == 'shaft':
                     y_true += (parts_mask
-                               == (125 + 255 * 256 + 12 * 256 * 256)) * 1
+                               == (0 + 255 * 256 + 0 * 256 * 256)) * 2
                 elif class_name == 'wrist':
                     y_true += (parts_mask
-                               == (0 + 255 * 256 + 0 * 256 * 256)) * 2
+                               == (125 + 255 * 256 + 12 * 256 * 256)) * 1
                 elif class_name == 'claspers':
                     y_true += (parts_mask
                                == (0 + 255 * 256 + 255 * 256 * 256)) * 3

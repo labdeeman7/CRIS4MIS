@@ -141,10 +141,10 @@ def process(root_dir, cris_data_file):
         for class_name in ['shaft', 'wrist', 'claspers']:
             if class_name == 'shaft':
                 target_mask = (parts_mask
-                               == (125 + 255 * 256 + 12 * 256 * 256)) * 255
+                               == (0 + 255 * 256 + 0 * 256 * 256)) * 255
             elif class_name == 'wrist':
                 target_mask = (parts_mask
-                               == (0 + 255 * 256 + 0 * 256 * 256)) * 255
+                               == (125 + 255 * 256 + 12 * 256 * 256)) * 255
             elif class_name == 'claspers':
                 target_mask = (parts_mask
                                == (0 + 255 * 256 + 255 * 256 * 256)) * 255
