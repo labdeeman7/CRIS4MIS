@@ -27,7 +27,7 @@ seq2path = {
 }
 
 
-def general_jaccard(y_true, y_pred):
+def ch_iou(y_true, y_pred):
     result = []
 
     if y_true.sum() == 0:
@@ -36,15 +36,66 @@ def general_jaccard(y_true, y_pred):
         else:
             return 0
 
-    for instrument_id in set(y_true.flatten()):
-        if instrument_id == 0:
+    for type_id in set(y_true.flatten()):
+        if type_id == 0:
             continue
-        result += [jaccard(y_true == instrument_id, y_pred == instrument_id)]
+        result += [iou(y_true == type_id, y_pred == type_id)]
 
     return np.mean(result)
 
 
-def general_dice(y_true, y_pred):
+def isi_iou(y_true, y_pred, problem_type='binary'):
+    result = []
+
+    if problem_type == 'binary':
+        type_number = 2
+    elif problem_type == 'parts':
+        type_number = 4
+    elif problem_type == 'instruments':
+        type_number = 8
+
+    if y_true.sum() == 0:
+        if y_pred.sum() == 0:
+            return 1
+        else:
+            return 0
+
+    for type_id in range(type_number):
+        if type_id == 0:
+            continue
+        if (y_true == type_id).sum() != 0 or (y_pred == type_id).sum() != 0:
+            result += [iou(y_true == type_id, y_pred == type_id)]
+
+    return np.mean(result)
+
+
+def mc_iou(y_true, y_pred, problem_type='binary'):
+    result = []
+
+    if problem_type == 'binary':
+        type_number = 2
+    elif problem_type == 'parts':
+        type_number = 4
+    elif problem_type == 'instruments':
+        type_number = 8
+
+    if y_true.sum() == 0:
+        if y_pred.sum() == 0:
+            return [-1 for _ in range(type_number - 1)]
+        else:
+            return [0 for _ in range(type_number - 1)]
+
+    for type_id in range(type_number):
+        if type_id == 0:
+            continue
+        if (y_true == type_id).sum() != 0 or (y_pred == type_id).sum() != 0:
+            result += [iou(y_true == type_id, y_pred == type_id)]
+        else:
+            result += [-1]
+    return result
+
+
+def ch_dice(y_true, y_pred):
     result = []
 
     if y_true.sum() == 0:
@@ -53,15 +104,15 @@ def general_dice(y_true, y_pred):
         else:
             return 0
 
-    for instrument_id in set(y_true.flatten()):
-        if instrument_id == 0:
+    for type_id in set(y_true.flatten()):
+        if type_id == 0:
             continue
-        result += [dice(y_true == instrument_id, y_pred == instrument_id)]
+        result += [dice(y_true == type_id, y_pred == type_id)]
 
     return np.mean(result)
 
 
-def jaccard(y_true, y_pred):
+def iou(y_true, y_pred):
     intersection = (y_true * y_pred).sum()
     union = y_true.sum() + y_pred.sum() - intersection
     return (intersection + 1e-15) / (union + 1e-15)
@@ -102,9 +153,6 @@ if __name__ == '__main__':
     arg('--vis', action='store_true')
     args = parser.parse_args()
 
-    result_jaccard = []
-    result_dice = []
-
     if args.problem_type == 'binary':
         class_name_list = ['background', 'instrument']
     elif args.problem_type == 'parts':
@@ -120,6 +168,11 @@ if __name__ == '__main__':
             'suction_instrument',
             'clip_applier',
         ]
+
+    result_ch_iou = []
+    result_ch_dice = []
+    result_isi_iou = []
+    result_mc_iou = []
 
     # palette
     if args.vis:
@@ -209,10 +262,28 @@ if __name__ == '__main__':
                 '{}/{}_{}_{}.jpg'.format(eval_dir, args.problem_type,
                                          image_split, file_id), vis_image)
 
-        result_jaccard += [general_jaccard(y_true, y_pred)]
-        result_dice += [general_dice(y_true, y_pred)]
+        # Challenge IoU
+        result_ch_iou += [ch_iou(y_true, y_pred)]
+        result_ch_dice += [ch_dice(y_true, y_pred)]
+        # ISI IoU
+        result_isi_iou += [isi_iou(y_true, y_pred, args.problem_type)]
+        # Mean Class IoU
+        result_mc_iou += [mc_iou(y_true, y_pred, args.problem_type)]
 
-    print('Jaccard (IoU): mean={:.2f}, std={:.4f}'.format(
-        np.mean(result_jaccard) * 100, np.std(result_jaccard)))
-    print('Dice: mean={:.2f}, std={:.4f}'.format(
-        np.mean(result_dice) * 100, np.std(result_dice)))
+    print('Ch IoU: mean={:.2f}, std={:.4f}'.format(
+        np.mean(result_ch_iou) * 100, np.std(result_ch_iou)))
+    print('Ch Dice: mean={:.2f}, std={:.4f}'.format(
+        np.mean(result_ch_dice) * 100, np.std(result_ch_dice)))
+    print('ISI IoU: mean={:.2f}, std={:.4f}'.format(
+        np.mean(result_isi_iou) * 100, np.std(result_isi_iou)))
+    result_mc = []
+    for c, class_name in enumerate(class_name_list[1:]):
+        result_c = []
+        for n in range(len(result_mc_iou)):
+            if result_mc_iou[n][c] >= 0:
+                result_c.append(result_mc_iou[n][c])
+        print('Instrument Class: {} IoU={:.2f}, std={:.4f}'.format(
+            class_name, np.mean(result_c) * 100, np.std(result_c)))
+        result_mc.append(np.mean(result_c))
+    print('MC IoU: mean={:.2f}, std={:.4f}'.format(
+        np.mean(result_mc) * 100, np.std(result_mc)))
