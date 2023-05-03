@@ -115,10 +115,12 @@ def load_cfg_from_cfg_file(file):
         'batch_size': 64,  # batch size for training
         # batch size for validation during training, memory and speed tradeoff
         'batch_size_val': 64,
+        'optimizer': 'adam',
         'base_lr': 0.0001,
         'lr_decay': 0.1,
         'lr_multi': 0.1,
         'weight_decay': 0.,
+        'amsgrad': False,
         'max_norm': 0.,
         'manual_seed': 0,
         'print_freq': 100,

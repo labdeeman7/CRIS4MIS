@@ -116,9 +116,18 @@ def main_worker(gpu, cfgs):
                                                 find_unused_parameters=True)
 
     # build optimizer & lr scheduler
-    optimizer = torch.optim.Adam(param_list,
-                                 lr=cfgs.base_lr,
-                                 weight_decay=cfgs.weight_decay)
+    if cfgs.optimizer == 'adam':
+        optimizer = torch.optim.Adam(param_list,
+                                     lr=cfgs.base_lr,
+                                     weight_decay=cfgs.weight_decay,
+                                     amsgrad=cfgs.amsgrad)
+    elif cfgs.optimizer == 'adamw':
+        optimizer = torch.optim.AdamW(param_list,
+                                      lr=cfgs.base_lr,
+                                      weight_decay=cfgs.weight_decay,
+                                      amsgrad=cfgs.amsgrad)
+    else:
+        assert 'Not support optimizer: {}!'.format(cfgs.optimizer)
     scheduler = MultiStepLR(optimizer,
                             milestones=cfgs.milestones,
                             gamma=cfgs.lr_decay)
