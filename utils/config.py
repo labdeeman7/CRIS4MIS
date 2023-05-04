@@ -124,6 +124,8 @@ def load_cfg_from_cfg_file(file):
         'max_norm': 0.,
         'manual_seed': 0,
         'print_freq': 100,
+        #cross_validation
+        'cross_validation_iteration': 1,
         ## Resume & Save
         'exp_name': 'CRIS_R50',
         'output_folder': 'exp/endovis2017',

@@ -40,7 +40,12 @@ def get_parser():
     cfg.__setattr__('only_pred_first_sent', args.only_pred_first_sent)
     cfg.__setattr__('test_sents_type', args.test_sents_type)
     if args.opts is not None:
+        opts = args.opts
         cfg = config.merge_cfg_from_list(cfg, args.opts)
+
+        if 'cross_validation_iteration' in opts:
+            cfg.exp_name = cfg.exp_name + "_" + str(cfg.cross_validation_iteration)  
+
     return cfg
 
 

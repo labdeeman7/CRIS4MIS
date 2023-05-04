@@ -41,14 +41,21 @@ def get_parser():
                         help='config file')
     parser.add_argument('--opts',
                         default=None,
-                        nargs=argparse.REMAINDER,
+                        nargs=argparse.REMAINDER, 
                         help='override some settings in the config.')  # 😉 Config file is a yaml there is an opts to override some settings in the config. I need to make a new yaml file.
 
     args = parser.parse_args()
     assert args.config is not None
     cfg = config.load_cfg_from_cfg_file(args.config)
     if args.opts is not None:
+        opts = args.opts
         cfg = config.merge_cfg_from_list(cfg, args.opts)
+        print(opts)
+        print(cfg)
+
+        if 'cross_validation_iteration' in opts:
+            cfg.exp_name = cfg.exp_name + "_" + str(cfg.cross_validation_iteration)   
+        
     return cfg
 
 
@@ -62,6 +69,8 @@ def main():
 
     cfgs.ngpus_per_node = torch.cuda.device_count()
     cfgs.world_size = cfgs.ngpus_per_node * cfgs.world_size
+        
+        
     if cfgs.world_size == 1:
         main_worker(0, cfgs)
     else:

@@ -29,7 +29,7 @@ from loguru import logger
 #     return model, param_list
 
 
-def build_segmenter(cfgs):
+def build_segmenter(cfgs): #😉 Builds the model. Segmenter contains only CRIS. CRIS contains the MAE part as well. 
     model = CRIS(cfgs)
     backbone = []
     head = []

@@ -303,6 +303,7 @@ class EndoVisDataset(Dataset):
     def __getitem__(self, index):
         ref = self.data[index] #😉 ref is a dict that contains the image path, mask path, number of sentences, and the sentences themselves for a single use case. There are images with tool segmentation masks and other instances of the same image with binary segmentation masks. 
         # img
+        # print(f"os.path.join(self.data_root, ref['img_path']) is {os.path.join(self.data_root, ref['img_path'])}")
         ori_img = cv2.imread(os.path.join(self.data_root, ref['img_path']))
         img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2RGB)
         img_size = img.shape[:2]
