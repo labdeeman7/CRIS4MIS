@@ -1,19 +1,17 @@
 DATA:
   dataset: endovis2018
   train_data_file: cris_train_2018.json
-  # train_data_root: ../data/endovis_2018_all_seq_full_size/train
-  train_data_root: /nfs/home/talabi/data/endovis_2018_all_seq_full_size/train
+  train_data_root: ../data/endovis_2018_all_seq_full_size/train
   val_data_file: cris_val_2018.json
-  # val_data_root: ../data/endovis_2018_all_seq_full_size/val
-  val_data_root: /nfs/home/talabi/data/endovis_2018_all_seq_full_size/val 
+  val_data_root: ../data/endovis_2018_all_seq_full_size/val
   sents_select_type: "random"
-  use_vis_aug: True
+  use_vis_aug: False
   use_vis_aug_non_rigid: False
 TRAIN:
   freeze_modules: []
   # Base Arch
-  clip_pretrain: /nfs/home/talabi/pretrain/RN50.pt
-  input_size: 960
+  clip_pretrain: pretrain/RN50.pt
+  input_size: 416
   word_len: 17
   word_dim: 1024
   vis_dim: 512
@@ -37,26 +35,17 @@ TRAIN:
   moe_consistency_loss_weight: 1.0
   # MAE
   use_mae_gen_target_area: False
-<<<<<<< HEAD
-  mae_pretrain: '/nfs/home/talabi/pretrain/mae_pretrain_vit_base.pth'
-=======
   mae_pretrain: 'pretrain/mae_pretrain_vit_base.pth'
->>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   reconstruct_full_img: False
   mae_hard_example_mining_type: null
   # Training Setting
   workers: 8  # data loader workers
   workers_val: 4
-  epochs: 50
+  epochs: 1
   milestones: [35]
   start_epoch: 0
-<<<<<<< HEAD
-  batch_size: 16  # batch size for training
-  batch_size_val: 16  # batch size for validation during training, memory and speed tradeoff
-=======
-  batch_size: 32  # batch size for training
-  batch_size_val: 32  # batch size for validation during training, memory and speed tradeoff
->>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
+  batch_size: 64  # batch size for training
+  batch_size_val: 64  # batch size for validation during training, memory and speed tradeoff
   base_lr: 0.0001
   lr_decay: 0.1
   lr_multi: 0.1
@@ -65,16 +54,14 @@ TRAIN:
   manual_seed: 0
   print_freq: 100
   # Resume & Save
-  exp_name: CRIS_R50_BIGGER_SIZE_DATA_AUG
-<<<<<<< HEAD
-  output_folder: /nfs/home/talabi/CRIS4MIS/exp/endovis2018
-=======
+  exp_name: CRIS_R50
   output_folder: exp/endovis2018
->>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   save_freq: 1
   weight:  # path to initial weight (default: none)
   resume:  # path to latest checkpoint (default: none)
   evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+  # debug
+  testing_trainable_weights: True
 Distributed:
   dist_url: tcp://localhost:3681
   dist_backend: 'nccl'
@@ -83,10 +70,5 @@ Distributed:
   rank: 0
 TEST:
   test_data_file: cris_val_2018.json
-<<<<<<< HEAD
-  # test_data_root: ../data/endovis_2018_all_seq_full_size/val
-  test_data_root: /nfs/home/talabi/data/endovis_2018_all_seq_full_size/val
-=======
   test_data_root: ../data/endovis_2018_all_seq_full_size/val
->>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   visualize: False

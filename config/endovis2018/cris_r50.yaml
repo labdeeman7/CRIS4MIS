@@ -1,16 +1,28 @@
 DATA:
+<<<<<<< HEAD
   dataset: endovis2017
   train_data_file: cris_train.json
   train_data_root: /nfs/home/talabi/data/endovis_2017_processed/cropped_train/
   val_data_file: cris_test.json
   val_data_root: /nfs/home/talabi/data/endovis_2017_processed/cropped_test/
+=======
+  dataset: endovis2018
+  train_data_file: cris_train_2018.json
+  train_data_root: ../data/endovis_2018_all_seq_full_size/train
+  val_data_file: cris_val_2018.json
+  val_data_root: ../data/endovis_2018_all_seq_full_size/val
+>>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   sents_select_type: "random"
   use_vis_aug: False
   use_vis_aug_non_rigid: False
 TRAIN:
   freeze_modules: []
   # Base Arch
+<<<<<<< HEAD
   clip_pretrain: /nfs/home/talabi/pretrain/RN50.pt
+=======
+  clip_pretrain: pretrain/RN50.pt
+>>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   input_size: 416
   word_len: 17
   word_dim: 1024
@@ -54,8 +66,13 @@ TRAIN:
   manual_seed: 0
   print_freq: 100
   # Resume & Save
+<<<<<<< HEAD
   exp_name: CRIS_416
   output_folder: /nfs/home/talabi/CRIS4MIS/exp/endovis2017
+=======
+  exp_name: CRIS_R50
+  output_folder: exp/endovis2018
+>>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   save_freq: 1
   weight:  # path to initial weight (default: none)
   resume:  # path to latest checkpoint (default: none)
@@ -67,6 +84,11 @@ Distributed:
   world_size: 1
   rank: 0
 TEST:
+<<<<<<< HEAD
   test_data_file: cris_test.json
   test_data_root: /nfs/home/talabi/data/endovis_2017_processed/cropped_test/
+=======
+  test_data_file: cris_val_2018.json
+  test_data_root: ../data/endovis_2018_all_seq_full_size/val
+>>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
   visualize: False

@@ -41,7 +41,11 @@ def get_parser():
                         help='config file')
     parser.add_argument('--opts',
                         default=None,
+<<<<<<< HEAD
                         nargs=argparse.REMAINDER, 
+=======
+                        nargs=argparse.REMAINDER,
+>>>>>>> 815a6bd9884a8fcf81e257848c345f7e21211acf
                         help='override some settings in the config.')  # 😉 Config file is a yaml there is an opts to override some settings in the config. I need to make a new yaml file.
 
     args = parser.parse_args()
